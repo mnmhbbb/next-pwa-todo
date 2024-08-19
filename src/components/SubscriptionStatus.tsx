@@ -87,7 +87,6 @@ const SubscriptionStatus = () => {
   const handleUnSubscription = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
-      console.log("🚀 ~ handleUnSubscription ~ registration:", registration);
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
@@ -118,7 +117,9 @@ const SubscriptionStatus = () => {
     }
   };
 
-  const handleUnPushNotification = async () => {};
+  const handleUnPushNotification = async () => {
+    alert("push test");
+  };
 
   return (
     <div>
