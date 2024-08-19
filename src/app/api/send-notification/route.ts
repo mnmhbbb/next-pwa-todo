@@ -14,6 +14,7 @@ interface SubscriptionType {
       p256dh: string;
       auth: string;
     };
+    expirationTime: null;
   };
 
 export async function POST(req: NextRequest) {
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
         badge: '/assets/icons/icon-192x192.png',
       };
       
-      const rawSubscription = subscription?.[0].subscription;
+      const rawSubscription = JSON.parse(subscription?.[0].subscription);
 
       const pushSubscription: SubscriptionType = {
         endpoint: rawSubscription.endpoint,
@@ -43,6 +44,7 @@ export async function POST(req: NextRequest) {
           p256dh: rawSubscription.keys.p256dh,
           auth: rawSubscription.keys.auth,
         },
+        expirationTime: null,
       };
         
         console.log('subscription', subscription);
