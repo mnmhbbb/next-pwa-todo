@@ -26,9 +26,11 @@ export async function POST(req: NextRequest) {
         icon: '/assets/icons/icon-192x192.png',
         badge: '/assets/icons/icon-192x192.png',
       };
-      console.log('subscription', subscription);
-      await webPush.sendNotification(subscription, JSON.stringify(notificationPayload));
-      return NextResponse.json({ message: 'success' }, { status: 200 });
+      if(subscription.length > 0) {
+          console.log('subscription', subscription);
+          await webPush.sendNotification(subscription[0], JSON.stringify(notificationPayload));
+          return NextResponse.json({ message: 'success' }, { status: 200 });
+      }
     }
   } catch (error) {
     console.error('Unexpected error:', error);
