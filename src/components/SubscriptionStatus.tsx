@@ -15,21 +15,22 @@ const SubscriptionStatus = () => {
 
   // TODO: 추후 pwa 컴포넌트로 분리
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('Service Worker registered with scope:', registration.scope);
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((registration) => {
+            console.log("Service Worker registered with scope:", registration.scope);
           })
-          .catch(err => {
-            console.error('Service Worker registration failed:', err);
+          .catch((err) => {
+            console.error("Service Worker registration failed:", err);
           });
       });
     }
   }, []);
 
   useEffect(() => {
-    if("Notification" in window) {
+    if ("Notification" in window) {
       const permission = Notification.permission as NotificationPermission;
       setStatus(permission);
     }
@@ -124,8 +125,8 @@ const SubscriptionStatus = () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
-      console.log('[client]', subscription);
-  
+      console.log("[client]", subscription);
+
       const res = await fetch("/api/send-notification", {
         method: "POST",
         headers: {
@@ -133,7 +134,7 @@ const SubscriptionStatus = () => {
         },
         body: JSON.stringify({ id: userId }), // TEMP
       });
-  
+
       if (!res.ok) {
         throw new Error("Failed to update server");
       }
