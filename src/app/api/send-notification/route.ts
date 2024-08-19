@@ -9,7 +9,7 @@ const privateVapidKey = process.env.VAPID_PRIVATE_KEY!;
 
 webPush.setVapidDetails(subject, publicVapidKey, privateVapidKey);
 
-interface SubscriptionType {
+interface PushSubscriptionType {
   endpoint: string;
   keys: {
     p256dh: string;
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const { id } = await req.json();
     const supabase = createClient(true);
 
-    const { data: subscription, error } = await supabase.from("user").select("subscription").eq("id", id);
+    const { data: subscription, error } = await supabase.from("user").select("pushSubscription").eq("id", id);
 
     if (error) {
       console.error("Supabase error:", error);
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
         badge: "/assets/icons/icon-192x192.png",
       };
 
-      const rawSubscription = JSON.parse(subscription?.[0].subscription);
+      const rawPushSubscription = JSON.parse(subscription?.[0].pushSubscription);
 
-      const pushSubscription: SubscriptionType = {
-        endpoint: rawSubscription.endpoint,
+      const pushSubscription: PushSubscriptionType = {
+        endpoint: rawPushSubscription.endpoint,
         keys: {
-          p256dh: rawSubscription.keys.p256dh,
-          auth: rawSubscription.keys.auth,
+          p256dh: rawPushSubscription.keys.p256dh,
+          auth: rawPushSubscription.keys.auth,
         },
         expirationTime: null,
       };

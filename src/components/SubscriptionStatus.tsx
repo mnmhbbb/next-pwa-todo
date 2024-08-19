@@ -36,28 +36,29 @@ const SubscriptionStatus = () => {
     }
   }, []);
 
-  const generateSubscribeEndPoint = async (newRegistration: ServiceWorkerRegistration) => {
+  const generatePushSubscription = async (registration: ServiceWorkerRegistration) => {
     const applicationServerKey = urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!);
     const options = {
       applicationServerKey,
       userVisibleOnly: true,
     };
-    const subscription = await newRegistration.pushManager.subscribe(options);
+    const pushSubscription = await registration.pushManager.subscribe(options);
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(subscription),
+        body: JSON.stringify(pushSubscription),
       });
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
       setUserId(data.userId);
     } catch (error) {
-      alert("Error" + error);
+      alert(`error: ${error}`);
     }
   };
 
@@ -65,12 +66,14 @@ const SubscriptionStatus = () => {
     if ("serviceWorker" in navigator) {
       try {
         const registration = await navigator.serviceWorker.getRegistration();
-        console.log(registration); // here
         if (registration) {
-          generateSubscribeEndPoint(registration);
+          generatePushSubscription(registration);
+        } else {
+          const newRegistration = await navigator.serviceWorker.register("/sw.js");
+          generatePushSubscription(newRegistration);
         }
       } catch (error) {
-        alert("Error during service worker registration or subscription:");
+        alert(`Error during service worker registration or subscription: ${error}`);
       }
     } else {
       alert("Service workers are not supported in this browser");
@@ -97,7 +100,6 @@ const SubscriptionStatus = () => {
         const successful = await subscription.unsubscribe();
         if (successful) {
           setStatus(NotificationPermission.default);
-
           const res = await fetch("/api/unsubscribe", {
             method: "POST",
             headers: {
@@ -116,17 +118,13 @@ const SubscriptionStatus = () => {
         setStatus(NotificationPermission.default);
       }
     } catch (error) {
-      console.error("Error during unsubscription:", error);
-      alert("Unsubscription failed: " + error);
+      console.error(`Error during unsubscription: ${error}`);
+      alert(`Unsubscription failed: ${error}`);
     }
   };
 
   const handlePushNotification = async () => {
     try {
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-      console.log("[client]", subscription);
-
       const res = await fetch("/api/send-notification", {
         method: "POST",
         headers: {
@@ -138,10 +136,10 @@ const SubscriptionStatus = () => {
       if (!res.ok) {
         throw new Error("Failed to update server");
       }
-      console.log("[send] Server updated successfully");
+      alert("[send] Server updated successfully");
     } catch (error) {
-      console.error("Error during unsubscription:", error);
-      alert("Unsubscription failed: " + error);
+      console.error(`Error during unsubscription: ${error}`);
+      alert(`Unsubscription failed: ${error}`);
     }
   };
 
