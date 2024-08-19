@@ -13,6 +13,7 @@ const SubscriptionStatus = () => {
   const [status, setStatus] = useState<SubscriptionStatusType>();
   const [userId, setUserId] = useState();
 
+  // TODO: 추후 pwa 컴포넌트로 분리
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -28,8 +29,10 @@ const SubscriptionStatus = () => {
   }, []);
 
   useEffect(() => {
-    const permission = Notification.permission as SubscriptionStatusType;
-    setStatus(permission);
+    if("Notification" in window) {
+      const permission = Notification.permission as SubscriptionStatusType;
+      setStatus(permission);
+    }
   }, []);
 
   const generateSubscribeEndPoint = async (newRegistration: ServiceWorkerRegistration) => {

@@ -1,4 +1,4 @@
-self.addEventListener('install', (event) => {
+  self.addEventListener('install', (event) => {
     console.log('[Service Worker] Installing Service Worker...');
     // 서비스 워커가 설치되자마자 skipWaiting 호출
     self.skipWaiting();
