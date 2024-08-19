@@ -3,14 +3,14 @@
 import { urlB64ToUint8Array } from "@/utils/utils";
 import { useEffect, useState } from "react";
 
-enum SubscriptionStatusType {
+export enum NotificationPermission {
   default = "default", // 권한을 요청할 수 있는 상태
   denied = "denied", // 권한 미승인 상태
   granted = "granted", // 권한 승인 상태
 }
 
 const SubscriptionStatus = () => {
-  const [status, setStatus] = useState<SubscriptionStatusType>();
+  const [status, setStatus] = useState<NotificationPermission>();
   const [userId, setUserId] = useState();
 
   // TODO: 추후 pwa 컴포넌트로 분리
@@ -30,7 +30,7 @@ const SubscriptionStatus = () => {
 
   useEffect(() => {
     if("Notification" in window) {
-      const permission = Notification.permission as SubscriptionStatusType;
+      const permission = Notification.permission as NotificationPermission;
       setStatus(permission);
     }
   }, []);
@@ -79,7 +79,7 @@ const SubscriptionStatus = () => {
   const handleSubscription = () => {
     if ("Notification" in window) {
       Notification.requestPermission().then((permission) => {
-        setStatus(permission as SubscriptionStatusType);
+        setStatus(permission as NotificationPermission);
         if (permission === "granted") {
           subscribe();
         }
@@ -95,7 +95,7 @@ const SubscriptionStatus = () => {
       if (subscription) {
         const successful = await subscription.unsubscribe();
         if (successful) {
-          setStatus(SubscriptionStatusType.denied);
+          setStatus(NotificationPermission.default);
 
           const res = await fetch("/api/unsubscribe", {
             method: "POST",
@@ -112,7 +112,7 @@ const SubscriptionStatus = () => {
         }
       } else {
         console.log("No subscription to unsubscribe");
-        setStatus(SubscriptionStatusType.default);
+        setStatus(NotificationPermission.default);
       }
     } catch (error) {
       console.error("Error during unsubscription:", error);
@@ -121,14 +121,34 @@ const SubscriptionStatus = () => {
   };
 
   const handleUnPushNotification = async () => {
-    alert("push test");
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      console.log('[client]', subscription);
+  
+      const res = await fetch("/api/send-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: userId }), // TEMP
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to update server");
+      }
+      console.log("[send] Server updated successfully");
+    } catch (error) {
+      console.error("Error during unsubscription:", error);
+      alert("Unsubscription failed: " + error);
+    }
   };
 
   return (
     <div>
       <h1>Hello?</h1>
       subscription status: {status}
-      {status === SubscriptionStatusType.granted ? (
+      {status === NotificationPermission.granted ? (
         <>
           <button onClick={handleUnSubscription}>구독해제</button>
           <button onClick={handleUnPushNotification}>푸시알림</button>
