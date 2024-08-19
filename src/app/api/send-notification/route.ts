@@ -6,7 +6,7 @@ import webPush from "web-push";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY!;
 
-webPush.setVapidDetails('mailto:rachaenlee@gmail.com', publicVapidKey, privateVapidKey);
+webPush.setVapidDetails('mailto:mnmhb64@gmail.com', publicVapidKey, privateVapidKey);
 
 interface SubscriptionType {
     endpoint: string;
