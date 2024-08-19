@@ -1,3 +1,8 @@
+self.addEventListener('activate', (event) => {
+  console.log('[Service Worker] Activating Service Worker...');
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("push", (event) => {
   console.log("[Service Worker] Push Received.", event.data.text());
   const { title, body, icon, badge } = event.data.json();
