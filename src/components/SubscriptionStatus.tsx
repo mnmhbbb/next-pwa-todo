@@ -120,7 +120,7 @@ const SubscriptionStatus = () => {
     }
   };
 
-  const handleUnPushNotification = async () => {
+  const handlePushNotification = async () => {
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -151,7 +151,7 @@ const SubscriptionStatus = () => {
       {status === NotificationPermission.granted ? (
         <>
           <button onClick={handleUnSubscription}>구독해제</button>
-          <button onClick={handleUnPushNotification}>푸시알림</button>
+          <button onClick={handlePushNotification}>푸시알림</button>
         </>
       ) : (
         <button onClick={handleSubscription}>구독하기</button>

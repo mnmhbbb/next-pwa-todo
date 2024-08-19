@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
         icon: '/assets/icons/icon-192x192.png',
         badge: '/assets/icons/icon-192x192.png',
       };
-      const rawSubscription = subscription[0].subscription;
+      
+      const rawSubscription = subscription?.[0].subscription;
 
-      // 데이터가 PushSubscription 타입에 부합하는지 확인합니다.
       const pushSubscription: SubscriptionType = {
         endpoint: rawSubscription.endpoint,
         keys: {
