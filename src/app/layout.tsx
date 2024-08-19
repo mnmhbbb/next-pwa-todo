@@ -3,7 +3,6 @@ import "./globals.css";
 
 import { Open_Sans } from "next/font/google";
 import Script from "next/script";
-import { useEffect } from "react";
 const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -48,46 +47,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-  useEffect(() => {
-    const handleError = (event: ErrorEvent) => {
-      console.error('Uncaught error:', event.error);
-    };
-  
-    window.addEventListener('error', handleError);
-  
-    return () => {
-      window.removeEventListener('error', handleError);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('Unhandled promise rejection:', event.reason);
-    };
-  
-    window.addEventListener('unhandledrejection', handleUnhandledRejection);
-  
-    return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-    };
-  }, []);
-
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
-        console.log('Service Worker is ready:', registration.active?.state);
-      });
-  
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('Service Worker controller changed');
-      });
-  
-      navigator.serviceWorker.addEventListener('message', event => {
-        console.log('Received message from Service Worker:', event.data);
-      });
-    }
-  }, []);
   return (
     <html lang="ko_KR">
       <Script
