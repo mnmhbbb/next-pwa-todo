@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Open_Sans } from "next/font/google";
+import Script from "next/script";
 const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -48,6 +49,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko_KR">
+      <Script
+        id="vconsole-loader"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            !function(e){var o=document,t=o.createElement("script");
+            t.src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js",
+            t.onload=function(){new VConsole({theme:'dark'})},o.body.appendChild(t)}();
+          `,
+        }}
+      />
       <body className={sans.className}>{children}</body>
     </html>
   );
