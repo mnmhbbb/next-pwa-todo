@@ -131,7 +131,7 @@ const SubscriptionStatus = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: userId }), // TEMP
+        body: JSON.stringify({ subscription }), // TEMP
       });
   
       if (!res.ok) {

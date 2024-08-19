@@ -17,40 +17,48 @@ interface SubscriptionType {
   };
 
 export async function POST(req: NextRequest) {
+  const { subscription } = await req.json();
+  const notificationPayload = {
+    title: 'Hello from PWA',
+    body: 'This is a test push notification',
+    icon: '/assets/icons/icon-192x192.png',
+    badge: '/assets/icons/icon-192x192.png',
+  };
+  await webPush.sendNotification(subscription, JSON.stringify(notificationPayload));
 
-  try {
-    const { id } = await req.json();
-    const supabase = createClient(true);
+//   try {
+//     const { id } = await req.json();
+//     const supabase = createClient(true);
 
-    const { data: subscription, error } = await supabase.from('user').select('subscription').eq('id', id);
+//     const { data: subscription, error } = await supabase.from('user').select('subscription').eq('id', id);
 
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    } else {
-      const notificationPayload = {
-        title: 'Hello from PWA',
-        body: 'This is a test push notification',
-        icon: '/assets/icons/icon-192x192.png',
-        badge: '/assets/icons/icon-192x192.png',
-      };
+//     if (error) {
+//       console.error('Supabase error:', error);
+//       return NextResponse.json({ message: error.message }, { status: 400 });
+//     } else {
+//       const notificationPayload = {
+//         title: 'Hello from PWA',
+//         body: 'This is a test push notification',
+//         icon: '/assets/icons/icon-192x192.png',
+//         badge: '/assets/icons/icon-192x192.png',
+//       };
       
-      const rawSubscription = subscription?.[0].subscription;
+//       const rawSubscription = subscription?.[0].subscription;
 
-      const pushSubscription: SubscriptionType = {
-        endpoint: rawSubscription.endpoint,
-        keys: {
-          p256dh: rawSubscription.keys.p256dh,
-          auth: rawSubscription.keys.auth,
-        },
-      };
+//       const pushSubscription: SubscriptionType = {
+//         endpoint: rawSubscription.endpoint,
+//         keys: {
+//           p256dh: rawSubscription.keys.p256dh,
+//           auth: rawSubscription.keys.auth,
+//         },
+//       };
         
-        console.log('subscription', subscription);
-        await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-        return NextResponse.json({ message: 'success' }, { status: 200 });
-    }
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return NextResponse.json({ message: 'An unexpected error occurred' }, { status: 500 });
-  }
+//         console.log('subscription', subscription);
+//         await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+//         return NextResponse.json({ message: 'success' }, { status: 200 });
+//     }
+//   } catch (error) {
+//     console.error('Unexpected error:', error);
+//     return NextResponse.json({ message: 'An unexpected error occurred' }, { status: 500 });
+//   }
 }
