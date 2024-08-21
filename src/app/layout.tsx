@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Open_Sans } from "next/font/google";
+import Pwa from "@/components/Pwa";
 const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -48,7 +49,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko_KR">
-      <body className={sans.className}>{children}</body>
+      <body className={sans.className}>
+        <div>
+          {children}
+          <Pwa />
+        </div>
+      </body>
     </html>
   );
 }

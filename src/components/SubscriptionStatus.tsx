@@ -13,22 +13,6 @@ const SubscriptionStatus = () => {
   const [status, setStatus] = useState<NotificationPermission>();
   const [userId, setUserId] = useState();
 
-  // TODO: 추후 pwa 컴포넌트로 분리
-  useEffect(() => {
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            console.log("Service Worker registered with scope:", registration.scope);
-          })
-          .catch((err) => {
-            console.error("Service Worker registration failed:", err);
-          });
-      });
-    }
-  }, []);
-
   useEffect(() => {
     if ("Notification" in window) {
       const permission = Notification.permission as NotificationPermission;
