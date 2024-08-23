@@ -4,6 +4,7 @@ import "./globals.css";
 import { Open_Sans } from "next/font/google";
 import Pwa from "@/components/Pwa";
 import Link from "next/link";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -48,17 +49,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const queryClient = new QueryClient();
+
   return (
     <html lang="ko_KR">
       <body className={sans.className}>
-        <div>
+        <QueryClientProvider client={queryClient}>
           {/* TODO: Header */}
           <Link className="flex justify-center py-5" href="/">
             Home
           </Link>
           {children}
           <Pwa />
-        </div>
+        </QueryClientProvider>
       </body>
     </html>
   );
