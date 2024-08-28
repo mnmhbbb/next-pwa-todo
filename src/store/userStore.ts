@@ -1,24 +1,27 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
+import { devtools } from "zustand/middleware";
 
-interface User {
+export interface User {
   id: string;
   email: string;
 }
 
 interface UserState {
   isLoggedIn: boolean;
-  userInfo: User | null;
+  user: User | null;
   isPushSubscribed: boolean;
   setUser: (user: User | null) => void;
   setPushSubscription: (isSubscribed: boolean) => void;
   logout: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+const storeCreator: StateCreator<UserState> = (set) => ({
   isLoggedIn: false,
-  userInfo: null,
+  user: null,
   isPushSubscribed: false,
-  setUser: (user) => set({ userInfo: user, isLoggedIn: !!user }),
+  setUser: (user) => set({ user, isLoggedIn: !!user }),
   setPushSubscription: (isSubscribed) => set({ isPushSubscribed: isSubscribed }),
-  logout: () => set({ userInfo: null, isLoggedIn: false }),
-}));
+  logout: () => set({ user: null, isLoggedIn: false }),
+});
+
+export const useUserStore = create<UserState>()(devtools(storeCreator, { name: "UserStore" }));
