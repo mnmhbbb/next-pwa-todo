@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, FormEvent } from "react";
-import { login, signup } from "./actions";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
+import { useAuth } from "@/hooks/useAuth";
 
 const LoginPage = () => {
+  const { signup, login } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
