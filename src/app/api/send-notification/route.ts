@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import createClient from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import webPush from "web-push";
@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
     const { id } = await req.json();
     const supabase = createClient(true);
 
-    const { data: subscription, error } = await supabase.from("user").select("pushSubscription").eq("id", id);
+    const { data: subscription, error } = await supabase
+      .from("user")
+      .select("pushSubscription")
+      .eq("id", id);
 
     if (error) {
       console.error("Supabase error:", error);
