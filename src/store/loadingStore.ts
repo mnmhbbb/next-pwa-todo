@@ -1,4 +1,5 @@
-import { create } from "zustand";
+import { create, StateCreator } from "zustand";
+import { devtools } from "zustand/middleware";
 
 type LoadingKey = "AUTH"; // enum처럼 사용
 
@@ -9,7 +10,7 @@ interface LoadingState {
   isAnyLoading: () => boolean;
 }
 
-export const useLoadingStore = create<LoadingState>((set, get) => ({
+const storeCreator: StateCreator<LoadingState> = (set, get) => ({
   loadingStates: {
     AUTH: false,
   },
@@ -25,4 +26,8 @@ export const useLoadingStore = create<LoadingState>((set, get) => ({
     }),
   isLoading: (key) => get().loadingStates[key] || false,
   isAnyLoading: () => Object.values(get().loadingStates).some(Boolean),
-}));
+});
+
+export const useLoadingStore = create<LoadingState>()(
+  devtools(storeCreator, { name: "loadingStore" }),
+);
