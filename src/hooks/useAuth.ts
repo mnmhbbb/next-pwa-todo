@@ -7,16 +7,8 @@ import { useEffect, useCallback, useState } from "react";
 export const useAuth = () => {
   const { user, setUser, logout: storeLogout } = useUserStore();
   const { setLoading, isLoading } = useLoadingStore();
-  const [isInitialized, setIsInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-
-  const setAuthLoading = useCallback(
-    (isLoading: boolean) => setLoading("AUTH", isLoading),
-    [setLoading],
-  );
-
-  const isAuthLoading = useCallback(() => isLoading("AUTH"), [isLoading]);
 
   const updateUserState = useCallback(
     (session: any | null) => {
@@ -32,13 +24,12 @@ export const useAuth = () => {
         }
         storeLogout();
       }
-      setIsInitialized(true);
     },
     [pathname, router, setUser, storeLogout],
   );
 
   const checkUser = useCallback(async () => {
-    setAuthLoading(true);
+    setLoading(true);
     try {
       const {
         data: { session },
@@ -46,11 +37,10 @@ export const useAuth = () => {
       updateUserState(session);
     } catch (error) {
       console.error("Error checking user session:", error);
-      setIsInitialized(true);
     } finally {
-      setAuthLoading(false);
+      setLoading(false);
     }
-  }, [updateUserState, setAuthLoading]);
+  }, [updateUserState, setLoading]);
 
   useEffect(() => {
     checkUser();
@@ -63,14 +53,14 @@ export const useAuth = () => {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [checkUser, setAuthLoading, updateUserState]);
+  }, [checkUser, updateUserState]);
 
   const handleAuthAction = useCallback(
     async (
       action: "signInWithPassword" | "signUp" | "signOut",
       data?: { email: string; password: string },
     ) => {
-      setAuthLoading(true);
+      setLoading(true);
       try {
         const { error } = await supabase.auth[action](data!);
         if (error) throw error;
@@ -78,10 +68,10 @@ export const useAuth = () => {
         console.error(`Error during ${action}:`, error.message);
         throw error;
       } finally {
-        setAuthLoading(false);
+        setLoading(false);
       }
     },
-    [setAuthLoading],
+    [setLoading],
   );
 
   const login = (formData: FormData) =>
@@ -101,8 +91,7 @@ export const useAuth = () => {
   return {
     user,
     isLoggedIn: !!user,
-    isLoading: isAuthLoading,
-    isInitialized,
+    isLoading,
     login,
     signup,
     logout,
