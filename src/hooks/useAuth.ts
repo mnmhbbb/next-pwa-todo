@@ -92,6 +92,7 @@ export const useAuth = () => {
     user,
     isLoggedIn: !!user,
     isLoading,
+    checkUser,
     login,
     signup,
     logout,
