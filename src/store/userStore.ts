@@ -15,11 +15,14 @@ interface UserState {
   logout: () => void;
 }
 
-const storeCreator: StateCreator<UserState> = (set) => ({
+const storeCreator: StateCreator<UserState> = (set, get) => ({
   isLoggedIn: false,
   user: null,
   isPushSubscribed: false,
-  setUser: (user) => set({ user, isLoggedIn: !!user }),
+  setUser: (user) => {
+    if (get().user?.id === user?.id) return; // 중복된 상태 업데이트 방지
+    set({ user, isLoggedIn: !!user });
+  },
   setPushSubscription: (isSubscribed) => set({ isPushSubscribed: isSubscribed }),
   logout: () => set({ user: null, isLoggedIn: false }),
 });
