@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import "./globals.css";
-
 import { Open_Sans } from "next/font/google";
+import "./globals.css";
 import Pwa from "@/components/Pwa";
-import Link from "next/link";
 import ReactQueryClientProvider from "@/hooks/useReactQuery";
+import AuthStateHandler from "@/components/AuthStateHandler";
+import GlobalLoadingSpinner from "@/components/GlobalLoadingSpinner";
+import Header from "@/components/Header";
 const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -53,11 +54,10 @@ export default function RootLayout({
     <html lang="ko_KR">
       <body className={sans.className}>
         <ReactQueryClientProvider>
-          {/* TODO: Header */}
-          <Link className="flex justify-center py-5" href="/">
-            Home
-          </Link>
+          <GlobalLoadingSpinner />
+          <Header />
           {children}
+          <AuthStateHandler />
           <Pwa />
         </ReactQueryClientProvider>
       </body>
