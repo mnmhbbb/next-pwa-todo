@@ -108,14 +108,18 @@ const SubscriptionStatus = () => {
     }
   };
 
-  const handlePushNotification = async () => {
+  const handlePushNotification = async (formData: FormData) => {
     try {
       const res = await fetch("/api/send-notification", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: user?.id, title: "테스트 타이틀", body: "테스트 내용입니다~~" }),
+        body: JSON.stringify({
+          id: user?.id,
+          title: formData.get("title") as string,
+          body: formData.get("description") as string,
+        }),
       });
 
       if (!res.ok) {
@@ -133,10 +137,49 @@ const SubscriptionStatus = () => {
       <p>구독 상태: {isPushSubscribed ? "구독" : "아직"}</p>
       subscription status: {status}
       {status === NotificationPermission.granted ? (
-        <>
+        <div className="flex flex-col gap-5">
           <button onClick={handleUnSubscription}>구독해제</button>
-          <button onClick={handlePushNotification}>푸시알림</button>
-        </>
+          <div>
+            <div className="flex justify-center min-h-screen ">
+              <form className="bg-white p-8 rounded-lg shadow-md w-96">
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                    제목:
+                  </label>
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    required
+                    className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+                    내용:
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="description"
+                      name="description"
+                      type="text"
+                      required
+                      className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-4">
+                  <button
+                    formAction={handlePushNotification}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  >
+                    알림 전송
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       ) : (
         <button onClick={handleSubscription}>구독하기</button>
       )}
