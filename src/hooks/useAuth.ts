@@ -5,18 +5,36 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useCallback, useState } from "react";
 
 export const useAuth = () => {
-  const { user, setUser, logout: storeLogout } = useUserStore();
+  const { user, setUser, logout: storeLogout, setPushSubscription } = useUserStore();
   const { setLoading, isLoading } = useLoadingStore();
   const router = useRouter();
   const pathname = usePathname();
 
   const updateUserState = useCallback(
-    (session: any | null) => {
+    async (session: any | null) => {
       if (session) {
         const { id, email } = session.user;
-        setUser({ id, email });
-        if (pathname === "/login") {
-          router.push("/private");
+
+        try {
+          const { data, error } = await supabase
+            .from("users")
+            .select("subscription_data")
+            .eq("id", id);
+
+          if (error) throw error;
+
+          setUser({ id, email });
+          setPushSubscription(!!data[0]?.subscription_data);
+
+          if (pathname === "/login") {
+            router.push("/private");
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error("Error fetching user data:", error.message);
+          } else {
+            console.error("Unknown error:", error);
+          }
         }
       } else {
         if (pathname !== "/login") {
@@ -34,7 +52,7 @@ export const useAuth = () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      updateUserState(session);
+      await updateUserState(session);
     } catch (error) {
       console.error("Error checking user session:", error);
     } finally {

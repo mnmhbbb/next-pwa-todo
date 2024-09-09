@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserStore } from "@/store/userStore";
 import { urlB64ToUint8Array } from "@/utils/utils";
 import { useEffect, useState } from "react";
 
@@ -10,8 +11,8 @@ export enum NotificationPermission {
 }
 
 const SubscriptionStatus = () => {
+  const { user, isPushSubscribed } = useUserStore();
   const [status, setStatus] = useState<NotificationPermission>();
-  const [userId, setUserId] = useState();
 
   useEffect(() => {
     if ("Notification" in window) {
@@ -33,14 +34,12 @@ const SubscriptionStatus = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(pushSubscription),
+        body: JSON.stringify({ id: user?.id, pushSubscription }),
       });
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      const data = await res.json();
-      setUserId(data.userId);
     } catch (error) {
       alert(`error: ${error}`);
     }
@@ -89,7 +88,7 @@ const SubscriptionStatus = () => {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ id: userId }), // TEMP
+            body: JSON.stringify({ id: user?.id }),
           });
 
           if (!res.ok) {
@@ -114,7 +113,7 @@ const SubscriptionStatus = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: userId }), // TEMP
+        body: JSON.stringify({ id: user?.id, title: "테스트 타이틀", body: "테스트 내용입니다~~" }),
       });
 
       if (!res.ok) {
@@ -130,6 +129,7 @@ const SubscriptionStatus = () => {
   return (
     <div>
       <h1>Hello?</h1>
+      <p>구독 상태: {isPushSubscribed ? "구독" : "아직"}</p>
       subscription status: {status}
       {status === NotificationPermission.granted ? (
         <>

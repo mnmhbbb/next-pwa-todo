@@ -20,26 +20,23 @@ interface PushSubscriptionType {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id } = await req.json();
-    const supabase = createClient(true);
+    const { id, title, body } = await req.json();
+    const supabase = createClient();
 
-    const { data: subscription, error } = await supabase
-      .from("user")
-      .select("pushSubscription")
-      .eq("id", id);
+    const { data, error } = await supabase.from("users").select("subscription_data").eq("id", id);
 
     if (error) {
       console.error("Supabase error:", error);
       return NextResponse.json({ message: error.message }, { status: 400 });
     } else {
       const notificationPayload = {
-        title: "Hello from PWA",
-        body: "This is a test push notification",
+        title,
+        body,
         icon: "/assets/icons/icon-192x192.png",
         badge: "/assets/icons/icon-192x192.png",
       };
 
-      const rawPushSubscription = JSON.parse(subscription?.[0].pushSubscription);
+      const rawPushSubscription = data?.[0].subscription_data;
 
       const pushSubscription: PushSubscriptionType = {
         endpoint: rawPushSubscription.endpoint,

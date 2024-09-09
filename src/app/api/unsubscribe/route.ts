@@ -4,9 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   try {
     const { id } = await req.json();
-    const supabase = createClient(true);
+    const supabase = createClient();
 
-    const { error } = await supabase.from("user").delete().eq("id", id);
+    const { error } = await supabase
+      .from("users")
+      .update({
+        created_at: new Date().toISOString(),
+        subscription_data: null,
+      })
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json({ message: error.message }, { status: 400 });

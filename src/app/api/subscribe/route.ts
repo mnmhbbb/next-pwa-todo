@@ -3,24 +3,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const pushSubscription = await req.json();
-    const supabase = createClient(true);
+    const { id, pushSubscription } = await req.json();
+    const supabase = createClient();
 
-    const { data, error } = await supabase
-      .from("user")
-      .insert([
-        {
-          id: crypto.randomUUID(),
-          created_at: new Date().toISOString(),
-          pushSubscription,
-        },
-      ])
-      .select();
+    const { error } = await supabase
+      .from("users")
+      .update({
+        created_at: new Date().toISOString(),
+        subscription_data: pushSubscription,
+      })
+      .eq("id", id);
 
     if (error) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     } else {
-      return NextResponse.json({ message: "success", userId: data[0].id }, { status: 200 });
+      return NextResponse.json({ message: "success" }, { status: 200 });
     }
   } catch (error) {
     return NextResponse.json({ message: "An unexpected error occurred" }, { status: 500 });
