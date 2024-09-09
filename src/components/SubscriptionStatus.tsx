@@ -39,6 +39,8 @@ const SubscriptionStatus = () => {
 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
+      } else {
+        alert("success");
       }
     } catch (error) {
       alert(`error: ${error}`);
@@ -94,7 +96,7 @@ const SubscriptionStatus = () => {
           if (!res.ok) {
             throw new Error("Failed to update server");
           }
-          console.log("Server updated successfully");
+          alert("Server updated successfully");
         }
       } else {
         console.log("No subscription to unsubscribe");
@@ -119,7 +121,6 @@ const SubscriptionStatus = () => {
       if (!res.ok) {
         throw new Error("Failed to update server");
       }
-      alert("[send] Server updated successfully");
     } catch (error) {
       console.error(`Error during unsubscription: ${error}`);
       alert(`Unsubscription failed: ${error}`);
