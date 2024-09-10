@@ -71,7 +71,7 @@ export const useAuth = () => {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [checkUser, updateUserState]);
+  }, []);
 
   const handleAuthAction = useCallback(
     async (
@@ -89,7 +89,7 @@ export const useAuth = () => {
         setLoading(false);
       }
     },
-    [setLoading],
+    [],
   );
 
   const login = (formData: FormData) =>

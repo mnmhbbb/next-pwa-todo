@@ -1,5 +1,6 @@
 "use client";
 
+import { useLoadingStore } from "@/store/loadingStore";
 import { useUserStore } from "@/store/userStore";
 import { urlB64ToUint8Array } from "@/utils/utils";
 import { useEffect, useState } from "react";
@@ -12,6 +13,8 @@ export enum NotificationPermission {
 
 const SubscriptionStatus = () => {
   const { user, isPushSubscribed } = useUserStore();
+  const { setLoading } = useLoadingStore();
+
   const [status, setStatus] = useState<NotificationPermission>();
 
   useEffect(() => {
@@ -38,11 +41,14 @@ const SubscriptionStatus = () => {
       });
 
       if (!res.ok) {
+        setLoading(false);
         throw new Error(`HTTP error! status: ${res.status}`);
       } else {
         alert("success");
+        setLoading(false);
       }
     } catch (error) {
+      setLoading(false);
       alert(`error: ${error}`);
     }
   };
@@ -58,14 +64,17 @@ const SubscriptionStatus = () => {
           generatePushSubscription(newRegistration);
         }
       } catch (error) {
+        setLoading(false);
         alert(`Error during service worker registration or subscription: ${error}`);
       }
     } else {
+      setLoading(false);
       alert("Service workers are not supported in this browser");
     }
   };
 
   const handleSubscription = () => {
+    setLoading(true);
     if ("Notification" in window) {
       Notification.requestPermission().then((permission) => {
         setStatus(permission as NotificationPermission);
@@ -77,6 +86,7 @@ const SubscriptionStatus = () => {
   };
 
   const handleUnSubscription = async () => {
+    setLoading(true);
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -94,15 +104,19 @@ const SubscriptionStatus = () => {
           });
 
           if (!res.ok) {
+            setLoading(false);
             throw new Error("Failed to update server");
           }
           alert("Server updated successfully");
+          setLoading(false);
         }
       } else {
+        setLoading(false);
         console.log("No subscription to unsubscribe");
         setStatus(NotificationPermission.default);
       }
     } catch (error) {
+      setLoading(false);
       console.error(`Error during unsubscription: ${error}`);
       alert(`Unsubscription failed: ${error}`);
     }
@@ -110,6 +124,7 @@ const SubscriptionStatus = () => {
 
   const handlePushNotification = async (formData: FormData) => {
     try {
+      setLoading(true);
       const res = await fetch("/api/send-notification", {
         method: "POST",
         headers: {
@@ -123,21 +138,29 @@ const SubscriptionStatus = () => {
       });
 
       if (!res.ok) {
+        setLoading(false);
         throw new Error("Failed to update server");
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error(`Error during unsubscription: ${error}`);
       alert(`Unsubscription failed: ${error}`);
     }
   };
 
   return (
-    <div>
+    <div className="flex-col gap-1 text-center">
       <h1>Hello?</h1>
-      <p>구독 상태: {isPushSubscribed ? "구독" : "아직"}</p>
-      subscription status: {status}
-      {status === NotificationPermission.granted ? (
-        <div className="flex flex-col gap-5">
+      <p>
+        구독 상태: {isPushSubscribed && status === NotificationPermission.granted ? "구독" : "아직"}
+      </p>
+      <div className="mb-5">
+        isPushSubscribed: {isPushSubscribed} <br />
+        subscription status: {status}
+      </div>
+      {isPushSubscribed && status === NotificationPermission.granted ? (
+        <div className="flex-col gap-5">
           <button onClick={handleUnSubscription}>구독해제</button>
           <div>
             <div className="flex justify-center min-h-screen ">
