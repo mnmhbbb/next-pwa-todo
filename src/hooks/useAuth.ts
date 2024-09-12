@@ -37,7 +37,7 @@ export const useAuth = () => {
           }
         }
       } else {
-        if (pathname !== "/login") {
+        if (pathname !== "/" && pathname !== "/login") {
           router.push("/login");
         }
         storeLogout();
