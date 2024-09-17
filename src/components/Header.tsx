@@ -7,7 +7,7 @@ const Header = () => {
   const { isLoggedIn, logout } = useUserStore();
 
   return (
-    <nav className="w-100 flex justify-between py-3 px-2 bg-zinc-200">
+    <nav className="w-100 flex justify-between py-3 px-2">
       <Link className="flex justify-center items-center" href="/">
         Home
       </Link>
