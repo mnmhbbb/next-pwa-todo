@@ -150,57 +150,60 @@ const SubscriptionStatus = () => {
   };
 
   return (
-    <div className="flex-col gap-1 text-center">
-      <h1>Hello?</h1>
-      <p>
+    <div className="flex-col gap-1 p-10">
+      <h1>
         구독 상태: {isPushSubscribed && status === NotificationPermission.granted ? "구독" : "아직"}
-      </p>
-      <div className="mb-5">
-        isPushSubscribed: {isPushSubscribed} <br />
-        subscription status: {status}
+      </h1>
+      <div className="mb-5 text-gray-600">
+        db 구독 상태: {isPushSubscribed ? "구독" : "아직"} <br />
+        브라우저 구독 상태:{" "}
+        {status === NotificationPermission.granted
+          ? "승인"
+          : status === NotificationPermission.denied
+          ? "거절"
+          : "기본 상태"}
       </div>
+
       {isPushSubscribed && status === NotificationPermission.granted ? (
-        <div className="flex-col gap-5">
-          <button onClick={handleUnSubscription}>구독해제</button>
-          <div>
-            <div className="flex justify-center min-h-screen ">
-              <form className="bg-white p-8 rounded-lg shadow-md w-96">
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
-                    제목:
-                  </label>
+        <div className="flex flex-col gap-5 justify-center">
+          <button onClick={handleUnSubscription}>구독해제하기</button>
+          <div className="flex justify-center">
+            <form className="bg-white p-8 rounded-lg shadow-md w-80">
+              <div className="mb-4">
+                <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                  제목:
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+                  내용:
+                </label>
+                <div className="relative">
                   <input
-                    id="title"
-                    name="title"
+                    id="description"
+                    name="description"
                     type="text"
                     required
                     className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="mb-6">
-                  <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
-                    내용:
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="description"
-                      name="description"
-                      type="text"
-                      required
-                      className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col space-y-4">
-                  <button
-                    formAction={handlePushNotification}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  >
-                    알림 전송
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div className="flex flex-col space-y-4">
+                <button
+                  formAction={handlePushNotification}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                >
+                  알림 전송
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       ) : (
