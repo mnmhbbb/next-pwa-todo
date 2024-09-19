@@ -123,6 +123,15 @@ const SubscriptionStatus = () => {
   };
 
   const handlePushNotification = async (formData: FormData) => {
+    const dateTime = formData.get("datetime") as string;
+    const dateObj = new Date(dateTime);
+    const now = new Date();
+
+    if (dateObj <= now) {
+      alert("날짜 및 시간은 현재 시점보다 이후여야 합니다.");
+      return;
+    }
+
     try {
       setLoading(true);
       const res = await fetch("/api/send-notification", {
@@ -134,6 +143,7 @@ const SubscriptionStatus = () => {
           id: user?.id,
           title: formData.get("title") as string,
           body: formData.get("description") as string,
+          dateTime,
         }),
       });
 
@@ -142,6 +152,7 @@ const SubscriptionStatus = () => {
         throw new Error("Failed to update server");
       }
       setLoading(false);
+      res.json().then((data) => alert(data.message));
     } catch (error) {
       setLoading(false);
       console.error(`Error during unsubscription: ${error}`);
@@ -170,7 +181,7 @@ const SubscriptionStatus = () => {
           <div className="flex justify-center">
             <form className="bg-white p-8 rounded-lg shadow-md w-80">
               <div className="mb-4">
-                <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">
                   제목:
                 </label>
                 <input
@@ -182,7 +193,7 @@ const SubscriptionStatus = () => {
                 />
               </div>
               <div className="mb-6">
-                <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+                <label htmlFor="description" className="block text-gray-700 text-sm font-bold mb-2">
                   내용:
                 </label>
                 <div className="relative">
@@ -190,6 +201,20 @@ const SubscriptionStatus = () => {
                     id="description"
                     name="description"
                     type="text"
+                    required
+                    className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="mb-6">
+                <label htmlFor="datetime" className="block text-gray-700 text-sm font-bold mb-2">
+                  알림 예약:
+                </label>
+                <div className="relative">
+                  <input
+                    id="datetime"
+                    name="datetime"
+                    type="datetime-local"
                     required
                     className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
