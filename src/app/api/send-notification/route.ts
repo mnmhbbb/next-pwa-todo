@@ -49,19 +49,25 @@ export async function POST(req: NextRequest) {
         expirationTime: null,
       };
 
-      const dateObj = new Date(dateTime);
-      const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
-      schedule.scheduleJob(utcDate, async function () {
-        try {
-          await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-        } catch (pushError) {
-          console.error("푸시 알림 전송 중 오류 발생:", pushError);
-        }
-      });
+      // const dateObj = new Date(dateTime);
+      // const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
+      // schedule.scheduleJob(utcDate, async function () {
+      //   try {
+      //     await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+      //   } catch (pushError) {
+      //     console.error("푸시 알림 전송 중 오류 발생:", pushError);
+      //   }
+      // });
+      try {
+        await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+      } catch (pushError) {
+        console.error("푸시 알림 전송 중 오류 발생:", pushError);
+      }
 
       return NextResponse.json(
         {
-          message: `푸시 알림이 성공적으로 예약되었습니다.\n${dateObj.toLocaleString()}에 전송될 예정입니다.`,
+          // message: `푸시 알림이 성공적으로 예약되었습니다.\n${dateObj.toLocaleString()}에 전송될 예정입니다.`,
+          message: "전송 완료!",
         },
         { status: 200 },
       );

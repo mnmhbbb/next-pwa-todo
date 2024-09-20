@@ -127,10 +127,10 @@ const SubscriptionStatus = () => {
     const dateObj = new Date(dateTime);
     const now = new Date();
 
-    if (dateObj <= now) {
-      alert("날짜 및 시간은 현재 시점보다 이후여야 합니다.");
-      return;
-    }
+    // if (dateObj <= now) {
+    //   alert("날짜 및 시간은 현재 시점보다 이후여야 합니다.");
+    //   return;
+    // }
 
     try {
       setLoading(true);
@@ -206,7 +206,7 @@ const SubscriptionStatus = () => {
                   />
                 </div>
               </div>
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <label htmlFor="datetime" className="block text-gray-700 text-sm font-bold mb-2">
                   알림 예약:
                 </label>
@@ -219,7 +219,7 @@ const SubscriptionStatus = () => {
                     className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="flex flex-col space-y-4">
                 <button
                   formAction={handlePushNotification}
