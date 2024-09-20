@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       };
 
       const dateObj = new Date(dateTime);
-      schedule.scheduleJob(dateObj, async function () {
+      const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
+      schedule.scheduleJob(utcDate, async function () {
         try {
           await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
         } catch (pushError) {
