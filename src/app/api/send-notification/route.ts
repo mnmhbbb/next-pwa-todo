@@ -2,7 +2,6 @@ import createClient from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import webPush from "web-push";
-import schedule from "node-schedule";
 
 const subject = "https://next-pwa-todo.vercel.app";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
@@ -51,13 +50,14 @@ export async function POST(req: NextRequest) {
 
       const dateObj = new Date(dateTime);
       const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
-      schedule.scheduleJob(utcDate, async function () {
-        try {
-          await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-        } catch (pushError) {
-          console.error("푸시 알림 전송 중 오류 발생:", pushError);
-        }
-      });
+
+      // TODO: db에 저장
+
+      // try {
+      //   await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+      // } catch (pushError) {
+      //   console.error("푸시 알림 전송 중 오류 발생:", pushError);
+      // }
 
       return NextResponse.json(
         {
