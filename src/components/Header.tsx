@@ -1,10 +1,12 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuth";
 import { useUserStore } from "@/store/userStore";
 import Link from "next/link";
 
 const Header = () => {
-  const { isLoggedIn, logout } = useUserStore();
+  const { isLoggedIn } = useUserStore();
+  const { logout } = useAuth();
 
   return (
     <nav className="w-100 flex justify-between py-3 px-2">
