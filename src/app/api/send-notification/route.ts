@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       };
 
       const dateObj = new Date(dateTime);
-      const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
+      const utcDate = new Date(dateObj.getTime() * 60 * 60 * 1000);
+
       schedule.scheduleJob(utcDate, async function () {
         try {
           await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
@@ -58,11 +59,6 @@ export async function POST(req: NextRequest) {
           console.error("푸시 알림 전송 중 오류 발생:", pushError);
         }
       });
-      try {
-        await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-      } catch (pushError) {
-        console.error("푸시 알림 전송 중 오류 발생:", pushError);
-      }
 
       return NextResponse.json(
         {
