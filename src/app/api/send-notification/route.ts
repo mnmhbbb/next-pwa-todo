@@ -2,6 +2,7 @@ import createClient from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import webPush from "web-push";
+import schedule from "node-schedule";
 
 const subject = "https://next-pwa-todo.vercel.app";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
@@ -20,14 +21,11 @@ interface PushSubscriptionType {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id, title, body } = await req.json();
+    const { id, title, body, dateTime } = await req.json();
 
     const supabase = createClient();
 
-    const { data, error } = await supabase
-      .from("users")
-      .select("subscription_data")
-      .eq("id", "720153ff-3469-42cd-b47a-07cefb9552b5");
+    const { data, error } = await supabase.from("users").select("subscription_data").eq("id", id);
 
     if (error) {
       console.error("Supabase error:", error);
@@ -51,11 +49,15 @@ export async function POST(req: NextRequest) {
         expirationTime: null,
       };
 
-      // const dateObj = new Date(dateTime);
-      // const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
-
-      // TODO: db에 저장
-
+      const dateObj = new Date(dateTime);
+      const utcDate = new Date(dateObj.getTime() - 9 * 60 * 60 * 1000);
+      schedule.scheduleJob(utcDate, async function () {
+        try {
+          await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+        } catch (pushError) {
+          console.error("푸시 알림 전송 중 오류 발생:", pushError);
+        }
+      });
       try {
         await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
       } catch (pushError) {
@@ -64,8 +66,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json(
         {
-          // message: `푸시 알림이 성공적으로 예약되었습니다.\n${dateObj.toLocaleString()}에 전송될 예정입니다.`,
-          message: `푸시 알림 발송 완료!`,
+          message: `푸시 알림이 성공적으로 예약되었습니다.\n${dateObj.toLocaleString()}에 전송될 예정입니다.`,
         },
         { status: 200 },
       );
