@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await supabase
       .from("users")
       .select("subscription_data")
-      .eq("id", "720153ff-3469-42cd-b47a-07cefb9552b5");
+      .eq("email", "test@test.com");
 
     if (error) {
       console.error("Supabase error:", error);
