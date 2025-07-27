@@ -37,3 +37,7 @@ next-env.d.ts
 # pwa
 public/workbox-*.js*
 public/worker-*.js*
+
+# Cursor 관련 파일들
+*.mdc
+.cursor/
