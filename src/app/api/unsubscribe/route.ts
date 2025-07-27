@@ -3,16 +3,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { id } = await req.json();
+    const { subscriptionData } = await req.json();
     const supabase = createClient();
 
     const { error } = await supabase
-      .from("users")
+      .from("info")
       .update({
         created_at: new Date().toISOString(),
         subscription_data: null,
       })
-      .eq("id", id);
+      .eq("subscription_data", subscriptionData);
 
     if (error) {
       return NextResponse.json({ message: error.message }, { status: 400 });

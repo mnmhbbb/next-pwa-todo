@@ -20,10 +20,10 @@ interface PushSubscriptionType {
 
 export async function POST(req: NextRequest) {
   try {
-    const { id, title, body } = await req.json();
+    const { title, body } = await req.json();
     const supabase = createClient();
 
-    const { data, error } = await supabase.from("users").select("subscription_data").eq("id", id);
+    const { data, error } = await supabase.from("info").select("subscription_data");
 
     if (error) {
       console.error("Supabase error:", error);
@@ -36,19 +36,47 @@ export async function POST(req: NextRequest) {
         badge: "/assets/icons/icon-192x192.png",
       };
 
-      const rawPushSubscription = data?.[0].subscription_data;
+      // 모든 구독자에게 알림 전송
+      const results = [];
 
-      const pushSubscription: PushSubscriptionType = {
-        endpoint: rawPushSubscription.endpoint,
-        keys: {
-          p256dh: rawPushSubscription.keys.p256dh,
-          auth: rawPushSubscription.keys.auth,
+      for (const item of data || []) {
+        try {
+          const rawPushSubscription = item.subscription_data;
+
+          const pushSubscription: PushSubscriptionType = {
+            endpoint: rawPushSubscription.endpoint,
+            keys: {
+              p256dh: rawPushSubscription.keys.p256dh,
+              auth: rawPushSubscription.keys.auth,
+            },
+            expirationTime: null,
+          };
+
+          await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
+          results.push({ success: true, endpoint: rawPushSubscription.endpoint });
+        } catch (error) {
+          console.error(
+            `Failed to send notification to ${item.subscription_data?.endpoint}:`,
+            error,
+          );
+          results.push({
+            success: false,
+            endpoint: item.subscription_data?.endpoint,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      const successCount = results.filter((r) => r.success).length;
+      const failureCount = results.filter((r) => !r.success).length;
+
+      return NextResponse.json(
+        {
+          message: `알림 전송 완료: 성공 ${successCount}개, 실패 ${failureCount}개`,
+          results,
         },
-        expirationTime: null,
-      };
-
-      await webPush.sendNotification(pushSubscription, JSON.stringify(notificationPayload));
-      return NextResponse.json({ message: "success" }, { status: 200 });
+        { status: 200 },
+      );
     }
   } catch (error) {
     console.error("Unexpected error:", error);
