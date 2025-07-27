@@ -2,9 +2,8 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="flex justify-around gap-10 p-5">
-      <Link href="/private">마이페이지</Link>
-      <Link href="/push">푸시알림 보내기</Link>
+    <main className="w-full h-full flex justify-center items-center">
+      <h1 className="text-2xl font-bold p-5">푸시 알림 테스트</h1>
     </main>
   );
 }
