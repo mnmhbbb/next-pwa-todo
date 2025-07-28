@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const supabase = createClient();
 
     const { error } = await supabase.from("info").insert({
-      created_at: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
+      created_at: new Date().toISOString(),
       subscription_data: pushSubscription,
     });
 
