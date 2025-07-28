@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { error } = await supabase
       .from("info")
       .update({
-        created_at: new Date().toISOString(),
+        created_at: new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
         subscription_data: null,
       })
       .eq("subscription_data", subscriptionData);
