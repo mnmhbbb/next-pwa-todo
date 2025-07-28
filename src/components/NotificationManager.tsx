@@ -2,7 +2,8 @@
 
 import { urlB64ToUint8Array } from "@/utils/utils";
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import NotificationForm from "./NotificationForm";
 
 export enum NotificationPermission {
   default = "default", // 권한을 요청할 수 있는 상태
@@ -54,7 +55,11 @@ const sendPushNotification = async ({ title, body }: { title: string; body: stri
 
   if (!res.ok) {
     if (res.status === 410) {
-      throw new Error("SUBSCRIPTION_EXPIRED");
+      throw new Error("SUBSCRIPTION_NOT_FOUND"); // 서버에서 구독 정보를 찾을 수 없음
+    } else if (res.status === 401) {
+      throw new Error("UNAUTHORIZED"); // VAPID 키 문제
+    } else if (res.status === 400) {
+      throw new Error("INVALID_REQUEST"); // 잘못된 요청
     }
     throw new Error(`HTTP error! status: ${res.status}`);
   }
@@ -62,76 +67,90 @@ const sendPushNotification = async ({ title, body }: { title: string; body: stri
   return res.json();
 };
 
-const SubscriptionStatus = () => {
+/**
+ * 푸시 알림 구독 상태 관리 컴포넌트
+ *
+ * 1. 구독 상태 확인
+ * 2. 구독 생성
+ * 3. 구독 해제
+ * 4. 알림 전송
+ * 5. 구독 재생성
+ * 6. 브라우저 정보 감지
+ */
+const NotificationManager = () => {
   const [status, setStatus] = useState<NotificationPermission>();
+  const queryClient = useQueryClient();
 
   // 구독 상태 확인
   const { data: subscriptionStatus } = useQuery({
     queryKey: ["subscription-status"],
     queryFn: async () => {
-      if ("Notification" in window) {
-        const permission = Notification.permission as NotificationPermission;
+      if (!("Notification" in window)) return NotificationPermission.default;
 
-        // 권한이 승인된 경우에만 실제 구독 상태 확인
-        if (permission === NotificationPermission.granted) {
-          try {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
+      // 브라우저 알림 권한 확인
+      const permission = Notification.permission as NotificationPermission;
 
-            // 실제 구독이 있는지 확인
-            if (subscription) {
-              return NotificationPermission.granted;
-            } else {
-              // 권한은 있지만 구독이 없는 경우
-              return NotificationPermission.default;
-            }
-          } catch (error) {
-            console.error("구독 상태 확인 중 오류:", error);
+      // 권한이 승인된 경우에만 실제 구독 상태 확인
+      if (permission === NotificationPermission.granted) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const subscription = await registration.pushManager.getSubscription();
+
+          // 실제 구독이 있는지 확인
+          if (subscription) {
+            return NotificationPermission.granted;
+          } else {
+            // 권한은 있지만 구독이 없는 경우
             return NotificationPermission.default;
           }
+        } catch (error) {
+          console.error("구독 상태 확인 중 오류:", error);
+          return NotificationPermission.default;
         }
-
-        return permission;
       }
-      return NotificationPermission.default;
+
+      return permission;
     },
-    staleTime: 5 * 60 * 1000, // 5분
   });
 
   // 구독하기 mutation
   const subscribeMutation = useMutation({
     mutationFn: async () => {
-      if ("serviceWorker" in navigator) {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (!registration) {
-          await navigator.serviceWorker.register("/sw.js");
-        }
-
-        const finalRegistration = await navigator.serviceWorker.ready;
-
-        // 기존 구독 해제
-        const existingSubscription = await finalRegistration.pushManager.getSubscription();
-        if (existingSubscription) {
-          await existingSubscription.unsubscribe();
-        }
-
-        // 새 구독 생성
-        const applicationServerKey = urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!);
-        const pushSubscription = await finalRegistration.pushManager.subscribe({
-          applicationServerKey,
-          userVisibleOnly: true,
-        });
-
-        // 서버에 구독 정보 전송
-        await subscribeToNotifications(pushSubscription);
-
-        localStorage.setItem("subscriptionData", JSON.stringify(pushSubscription));
-        return pushSubscription;
+      if (!("serviceWorker" in navigator)) {
+        throw new Error("Service workers are not supported");
       }
-      throw new Error("Service workers are not supported");
+
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        await navigator.serviceWorker.register("/sw.js");
+      }
+
+      const finalRegistration = await navigator.serviceWorker.ready;
+
+      // 기존 구독 이력이 있다면 구독 해제(중복 방지)
+      const existingSubscription = await finalRegistration.pushManager.getSubscription();
+      if (existingSubscription) {
+        await existingSubscription.unsubscribe();
+      }
+
+      // 새 구독 정보 생성
+      const applicationServerKey = urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!);
+      const pushSubscription = await finalRegistration.pushManager.subscribe({
+        applicationServerKey,
+        userVisibleOnly: true,
+      });
+
+      // API에 구독 정보 전송
+      await subscribeToNotifications(pushSubscription);
+
+      // 구독 정보 로컬 스토리지에 저장
+      localStorage.setItem("subscriptionData", JSON.stringify(pushSubscription));
+      return pushSubscription;
     },
     onSuccess: () => {
-      setStatus(NotificationPermission.granted);
+      alert("구독 완료");
+      // 구독 상태 쿼리 무효화하여 최신 상태 반영
+      queryClient.invalidateQueries({ queryKey: ["subscription-status"] });
     },
     onError: (error) => {
       console.error("구독 생성 중 오류:", error);
@@ -153,14 +172,20 @@ const SubscriptionStatus = () => {
       }
 
       const subscriptionData = localStorage.getItem("subscriptionData");
+
+      // API에 구독 해제 정보 전송(DB에서 삭제하기 위함)
       await unsubscribeFromNotifications(subscriptionData);
 
+      // 로컬 스토리지에서 구독 정보 삭제
       localStorage.removeItem("subscriptionData");
+
       return true;
     },
     onSuccess: () => {
       alert("구독해제 완료");
-      setStatus(NotificationPermission.default);
+
+      // 구독 상태 쿼리 무효화하여 최신 상태 반영
+      queryClient.invalidateQueries({ queryKey: ["subscription-status"] });
     },
     onError: (error) => {
       console.error("구독해제 중 오류:", error);
@@ -175,9 +200,13 @@ const SubscriptionStatus = () => {
       alert("알림이 성공적으로 전송되었습니다!");
     },
     onError: (error: Error) => {
-      if (error.message === "SUBSCRIPTION_EXPIRED") {
-        alert("구독이 만료되었습니다. 자동으로 재생성합니다.");
+      if (error.message === "SUBSCRIPTION_NOT_FOUND") {
+        alert("구독 정보를 찾을 수 없습니다. 자동으로 재생성합니다.");
         regenerateSubscriptionMutation.mutate();
+      } else if (error.message === "UNAUTHORIZED") {
+        alert("인증 오류가 발생했습니다. VAPID 키를 확인해주세요.");
+      } else if (error.message === "INVALID_REQUEST") {
+        alert("잘못된 요청입니다. 입력값을 확인해주세요.");
       } else {
         console.error("알림 전송 중 오류:", error);
         alert(`알림 전송 실패: ${error.message}`);
@@ -201,7 +230,8 @@ const SubscriptionStatus = () => {
     },
     onSuccess: () => {
       alert("구독이 재생성되었습니다. 다시 알림을 전송해주세요.");
-      setStatus(NotificationPermission.granted);
+      // 구독 상태 쿼리 무효화하여 최신 상태 반영
+      queryClient.invalidateQueries({ queryKey: ["subscription-status"] });
     },
     onError: (error) => {
       console.error("구독 재생성 중 오류:", error);
@@ -291,58 +321,25 @@ const SubscriptionStatus = () => {
   return (
     <div className="flex-col gap-1 p-10">
       <div className="mb-5 text-gray-600">
-        푸시 알림 구독 상태:{" "}
+        브라우저 알림 권한 상태:{" "}
         {status === NotificationPermission.granted
-          ? "구독 중"
+          ? "허용"
           : status === NotificationPermission.denied
-          ? "구독 권한 거절 상태"
-          : "구독 필요"}
+          ? "거절"
+          : "미선택"}
       </div>
+      {/* TODO: */}
+      <div className="mb-5 text-gray-600">푸시 알림 구독 상태: </div>
 
       {status === NotificationPermission.granted ? (
         <div className="flex flex-col gap-5 justify-center">
           <button onClick={handleUnSubscription} disabled={unsubscribeMutation.isPending}>
             {unsubscribeMutation.isPending ? "구독해제 중..." : "구독해제하기"}
           </button>
-          <div className="flex justify-center">
-            <form className="bg-white p-8 rounded-lg shadow-md w-80">
-              <div className="mb-4">
-                <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
-                  제목:
-                </label>
-                <input
-                  id="title"
-                  name="title"
-                  type="text"
-                  required
-                  className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="mb-6">
-                <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
-                  내용:
-                </label>
-                <div className="relative">
-                  <input
-                    id="description"
-                    name="description"
-                    type="text"
-                    required
-                    className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col space-y-4">
-                <button
-                  formAction={handlePushNotification}
-                  disabled={sendNotificationMutation.isPending}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-gray-400"
-                >
-                  {sendNotificationMutation.isPending ? "전송 중..." : "알림 전송"}
-                </button>
-              </div>
-            </form>
-          </div>
+          <NotificationForm
+            onSubmit={handlePushNotification}
+            isPending={sendNotificationMutation.isPending}
+          />
         </div>
       ) : (
         <button onClick={handleSubscription} disabled={subscribeMutation.isPending}>
@@ -353,4 +350,4 @@ const SubscriptionStatus = () => {
   );
 };
 
-export default SubscriptionStatus;
+export default NotificationManager;
