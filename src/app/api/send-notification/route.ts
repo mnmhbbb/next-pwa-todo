@@ -23,6 +23,9 @@ export async function POST(req: NextRequest) {
     const { title, body } = await req.json();
     const supabase = createClient();
 
+    // 현재 요청의 URL에서 origin 추출
+    const origin = req.nextUrl.origin;
+
     const { data, error } = await supabase.from("info").select("subscription_data");
 
     if (error) {
@@ -34,6 +37,7 @@ export async function POST(req: NextRequest) {
         body,
         icon: "/assets/icons/icon-192x192.png",
         badge: "/assets/icons/icon-192x192.png",
+        link: `${origin}/push`,
       };
 
       // 모든 구독자에게 알림 전송
