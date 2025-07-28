@@ -245,6 +245,75 @@ const NotificationManager = () => {
     }
   }, [subscriptionStatus]);
 
+  // 브라우저 알림 권한 상태를 표시하는 computed 함수
+  const getPermissionStatusText = (status: NotificationPermission | undefined) => {
+    switch (status) {
+      case NotificationPermission.granted:
+        return "허용";
+      case NotificationPermission.denied:
+        return "거절";
+      case NotificationPermission.default:
+        return "미선택";
+      default:
+        return "확인 중...";
+    }
+  };
+
+  // 푸시 구독 상태를 확인하는 함수
+  const getPushSubscriptionStatus = async (): Promise<{
+    isSubscribed: boolean;
+    status: string;
+  }> => {
+    try {
+      // 브라우저 알림 권한이 허용되지 않은 경우
+      if (!("Notification" in window) || Notification.permission !== "granted") {
+        return { isSubscribed: false, status: "권한 없음" };
+      }
+
+      // Service Worker가 지원되지 않는 경우
+      if (!("serviceWorker" in navigator)) {
+        return { isSubscribed: false, status: "Service Worker 미지원" };
+      }
+
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+
+      if (subscription) {
+        return { isSubscribed: true, status: "구독" };
+      } else {
+        return { isSubscribed: false, status: "미구독" };
+      }
+    } catch (error) {
+      console.error("푸시 구독 상태 확인 중 오류:", error);
+      return { isSubscribed: false, status: "확인 실패" };
+    }
+  };
+
+  // 푸시 구독 상태를 표시하는 computed 함수
+  const [pushSubscriptionStatus, setPushSubscriptionStatus] = useState<{
+    isSubscribed: boolean;
+    status: string;
+  }>({
+    isSubscribed: false,
+    status: "확인 중...",
+  });
+
+  // 푸시 구독 상태를 주기적으로 확인
+  useEffect(() => {
+    const checkPushSubscription = async () => {
+      const status = await getPushSubscriptionStatus();
+      setPushSubscriptionStatus(status);
+    };
+
+    // 초기 확인
+    checkPushSubscription();
+
+    // 상태가 변경될 때마다 재확인
+    if (status === NotificationPermission.granted) {
+      checkPushSubscription();
+    }
+  }, [status]);
+
   const handleSubscription = () => {
     if ("Notification" in window) {
       // 권한이 거절된 상태라면 사용자에게 안내
@@ -321,15 +390,9 @@ const NotificationManager = () => {
   return (
     <div className="flex-col gap-1 p-10">
       <div className="mb-5 text-gray-600">
-        브라우저 알림 권한 상태:{" "}
-        {status === NotificationPermission.granted
-          ? "허용"
-          : status === NotificationPermission.denied
-          ? "거절"
-          : "미선택"}
+        브라우저 알림 권한 상태: {getPermissionStatusText(status)}
       </div>
-      {/* TODO: */}
-      <div className="mb-5 text-gray-600">푸시 알림 구독 상태: </div>
+      <div className="mb-5 text-gray-600">푸시 알림 구독 상태: {pushSubscriptionStatus.status}</div>
 
       {status === NotificationPermission.granted ? (
         <div className="flex flex-col gap-5 justify-center">
