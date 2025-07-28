@@ -4,8 +4,8 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "name": "next-pwa-todo",
-  "short_name": "todo",
+  "name": "next-push-test",
+  "short_name": "push-test",
   "icons": [
     {
       "src": "/assets/icons/icon-192x192.png",

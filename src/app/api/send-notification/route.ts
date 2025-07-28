@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import webPush from "web-push";
 
-const subject = "https://next-pwa-todo.vercel.app";
+const subject = "https://next-push-test.vercel.app";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY!;
 

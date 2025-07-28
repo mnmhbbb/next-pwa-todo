@@ -8,7 +8,7 @@ const sans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "abc",
-  description: "그래도 해야지 어떡해",
+  description: "웹 푸시 알림 테스트입니다",
   viewport: "initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no",
   icons: {
     icon: [{ url: "/assets/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" }],
@@ -17,14 +17,14 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   openGraph: {
     title: "abc",
-    description: "그래도 해야지 어떡해",
-    url: "https://next-pwa-todo.vercel.app",
+    description: "웹 푸시 알림 테스트입니다",
+    url: "https://next-push-test.vercel.app",
     siteName: "abc",
     locale: "ko_KR",
     type: "website",
     images: [
       {
-        url: "https://next-pwa-todo.vercel.app/assets/icons/og.png",
+        url: "https://next-push-test.vercel.app/assets/icons/og.png",
         width: 1280,
         height: 800,
       },
@@ -33,8 +33,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "abc",
-    description: "그래도 해야지 어떡해",
-    images: ["https://next-pwa-todo.vercel.app/assets/icons/og.png"],
+    description: "웹 푸시 알림 테스트입니다",
+    images: ["https://next-push-test.vercel.app/assets/icons/og.png"],
   },
 };
 
