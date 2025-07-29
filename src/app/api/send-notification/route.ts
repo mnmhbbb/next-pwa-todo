@@ -1,4 +1,4 @@
-import createClient from "@/utils/supabase/server";
+import createServerSupabaseClient from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import webPush from "web-push";
@@ -21,7 +21,7 @@ interface PushSubscriptionType {
 export async function POST(req: NextRequest) {
   try {
     const { title, body } = await req.json();
-    const supabase = createClient();
+    const supabase = createServerSupabaseClient();
 
     // 현재 요청의 URL에서 origin 추출
     const origin = req.nextUrl.origin;

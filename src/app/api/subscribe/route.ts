@@ -1,10 +1,10 @@
-import createClient from "@/utils/supabase/server";
+import createServerSupabaseClient from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
     const { pushSubscription } = await req.json();
-    const supabase = createClient();
+    const supabase = createServerSupabaseClient();
 
     const { error } = await supabase.from("info").insert({
       created_at: new Date().toISOString(),
