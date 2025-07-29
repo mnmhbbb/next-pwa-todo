@@ -23,7 +23,6 @@ export enum NotificationPermission {
  */
 const NotificationManager = () => {
   const [status, setStatus] = useState<NotificationPermission>();
-  const [pushSubscriptionStatus, setPushSubscriptionStatus] = useState<string>("확인 중...");
 
   const {
     subscribeMutation,
@@ -76,22 +75,6 @@ const NotificationManager = () => {
       setStatus(subscriptionStatus);
     }
   }, [subscriptionStatus]);
-
-  // 푸시 구독 상태를 주기적으로 확인
-  useEffect(() => {
-    const checkPushSubscription = async () => {
-      const status = await getPushSubscriptionStatus();
-      setPushSubscriptionStatus(status);
-    };
-
-    // 초기 확인
-    checkPushSubscription();
-
-    // 상태가 변경될 때마다 재확인
-    if (status === NotificationPermission.granted) {
-      checkPushSubscription();
-    }
-  }, [status]);
 
   const handleSubscription = () => {
     if ("Notification" in window) {
@@ -211,7 +194,7 @@ iOS에서는 PWA 앱 설치가 필요합니다:
       case NotificationPermission.denied:
         return "거절";
       case NotificationPermission.default:
-        return "미선택";
+        return "초기 상태";
       default:
         return "확인 중...";
     }
@@ -275,7 +258,6 @@ iOS에서는 PWA 앱 설치가 필요합니다:
       <div className="mb-5 text-gray-600">
         브라우저 알림 권한 상태: {getPermissionStatusText(status)}
       </div>
-      <div className="mb-5 text-gray-600">푸시 알림 구독 상태: {pushSubscriptionStatus}</div>
 
       {!isAnyMutationLoading && status === NotificationPermission.granted ? (
         <div className="flex flex-col gap-5 justify-center">
@@ -288,7 +270,7 @@ iOS에서는 PWA 앱 설치가 필요합니다:
                 : "bg-red-500 hover:bg-red-600 text-white"
             }`}
           >
-            {unsubscribeMutation.isPending ? "구독해제 중..." : "구독해제하기"}
+            {unsubscribeMutation.isPending ? "구독해제 중..." : "푸시 알림 구독 해제하기"}
           </button>
           <NotificationForm
             onSubmit={handlePushNotification}
@@ -306,7 +288,7 @@ iOS에서는 PWA 앱 설치가 필요합니다:
               : "bg-blue-500 hover:bg-blue-600 text-white"
           }`}
         >
-          {subscribeMutation.isPending ? "구독 중..." : "구독하기"}
+          {subscribeMutation.isPending ? "구독 중..." : "푸시 알림 구독하기"}
         </button>
       )}
     </div>
