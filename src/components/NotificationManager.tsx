@@ -95,6 +95,12 @@ const NotificationManager = () => {
 
   const handleSubscription = () => {
     if ("Notification" in window) {
+      // iOS에서 PWA 모드가 아닌 경우 설치 안내
+      if (isIOS() && !isPWAMode()) {
+        showIOSInstallGuide();
+        return;
+      }
+
       // 권한이 거절된 상태라면 사용자에게 안내
       if (Notification.permission === "denied") {
         const browserInfo = getBrowserInfo();
@@ -148,6 +154,37 @@ const NotificationManager = () => {
       return { name: "Edge", type: "edge" };
     }
     return { name: "브라우저", type: "unknown" };
+  };
+
+  // iOS 감지
+  const isIOS = () => {
+    if (typeof window === "undefined") return false;
+    const userAgent = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(userAgent);
+  };
+
+  // PWA 모드 감지
+  const isPWAMode = () => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone === true
+    );
+  };
+
+  // iOS에서 PWA 설치 안내
+  const showIOSInstallGuide = () => {
+    const guide = `
+iOS에서는 PWA 앱 설치가 필요합니다:
+
+1. 공유 버튼 클릭 후
+2. "홈 화면에 추가"를 선택하세요
+3. "추가"를 탭하여 설치하세요
+4. 홈 화면에서 앱을 실행하세요.
+
+설치 후에는 푸시 알림이 정상적으로 작동합니다.
+    `;
+    alert(guide);
   };
 
   // 브라우저별 권한 설정 안내
@@ -209,6 +246,22 @@ const NotificationManager = () => {
 
   return (
     <div className="flex-col gap-1 p-10">
+      {/* iOS PWA 설치 안내 */}
+      {isIOS() && !isPWAMode() && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <div className="text-yellow-600 text-lg">📱</div>
+            <div>
+              <h3 className="font-medium text-yellow-800 mb-2">iOS 사용자 안내</h3>
+              <p className="text-yellow-700 text-sm mb-1">
+                iOS에서는 PWA 앱 설치가 필요합니다.
+                <br />홈 화면에 추가하여 앱으로 실행하시면 푸시 알림이 정상 작동합니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 로딩 상태 메시지 표시 */}
       {(isAnyMutationLoading || isSubscriptionStatusLoading) && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
