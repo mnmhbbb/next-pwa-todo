@@ -1,9 +1,10 @@
 interface NotificationFormProps {
   onSubmit: (formData: FormData) => void;
   isPending: boolean;
+  disabled?: boolean;
 }
 
-const NotificationForm = ({ onSubmit, isPending }: NotificationFormProps) => {
+const NotificationForm = ({ onSubmit, isPending, disabled = false }: NotificationFormProps) => {
   return (
     <div className="flex justify-center">
       <form className="bg-white p-8 rounded-lg shadow-md w-80">
@@ -16,7 +17,8 @@ const NotificationForm = ({ onSubmit, isPending }: NotificationFormProps) => {
             name="title"
             type="text"
             required
-            className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={disabled}
+            className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
           />
         </div>
         <div className="mb-6">
@@ -29,15 +31,16 @@ const NotificationForm = ({ onSubmit, isPending }: NotificationFormProps) => {
               name="description"
               type="text"
               required
-              className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={disabled}
+              className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
             />
           </div>
         </div>
         <div className="flex flex-col space-y-4">
           <button
             formAction={onSubmit}
-            disabled={isPending}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-gray-400"
+            disabled={isPending || disabled}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "전송 중..." : "알림 전송"}
           </button>
