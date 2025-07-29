@@ -77,39 +77,39 @@ const NotificationManager = () => {
   }, [subscriptionStatus]);
 
   const handleSubscription = () => {
-    if ("Notification" in window) {
-      // iOS에서 PWA 모드가 아닌 경우 설치 안내
-      if (isIOS() && !isPWAMode()) {
-        showIOSInstallGuide();
-        return;
+    if (!("Notification" in window)) return;
+
+    // iOS에서 PWA 모드가 아닌 경우 설치 안내
+    if (isIOS() && !isPWAMode()) {
+      showIOSInstallGuide();
+      return;
+    }
+
+    // 권한이 거절된 상태라면 사용자에게 안내
+    if (Notification.permission === "denied") {
+      const browserInfo = getBrowserInfo();
+      const instructions = getPermissionInstructions(browserInfo);
+
+      const shouldRetry = confirm(
+        "브라우저에서 알림 권한이 거절되었습니다.\n\n" +
+          "브라우저 설정에서 알림 권한을 허용한 후 페이지를 새로고침해주세요.\n\n" +
+          `설정 방법 (${browserInfo.name}):\n${instructions}\n\n` +
+          "설정 완료 후 페이지를 새로고침하고 다시 시도해주세요.",
+      );
+
+      if (shouldRetry) {
+        // 브라우저 정책상 거절된 권한은 프로그래밍적으로 재요청 불가
+        // 사용자가 수동으로 설정 변경 후 새로고침 필요
+        alert("브라우저 설정에서 알림 권한을 허용한 후 페이지를 새로고침해주세요.");
       }
-
-      // 권한이 거절된 상태라면 사용자에게 안내
-      if (Notification.permission === "denied") {
-        const browserInfo = getBrowserInfo();
-        const instructions = getPermissionInstructions(browserInfo);
-
-        const shouldRetry = confirm(
-          "브라우저에서 알림 권한이 거절되었습니다.\n\n" +
-            "브라우저 설정에서 알림 권한을 허용한 후 페이지를 새로고침해주세요.\n\n" +
-            `설정 방법 (${browserInfo.name}):\n${instructions}\n\n` +
-            "설정 완료 후 페이지를 새로고침하고 다시 시도해주세요.",
-        );
-
-        if (shouldRetry) {
-          // 브라우저 정책상 거절된 권한은 프로그래밍적으로 재요청 불가
-          // 사용자가 수동으로 설정 변경 후 새로고침 필요
-          alert("브라우저 설정에서 알림 권한을 허용한 후 페이지를 새로고침해주세요.");
+    } else {
+      // 기본 권한 요청
+      Notification.requestPermission().then((permission) => {
+        setStatus(permission as NotificationPermission);
+        if (permission === "granted") {
+          subscribeMutation.mutate();
         }
-      } else {
-        // 기본 권한 요청
-        Notification.requestPermission().then((permission) => {
-          setStatus(permission as NotificationPermission);
-          if (permission === "granted") {
-            subscribeMutation.mutate();
-          }
-        });
-      }
+      });
     }
   };
 
@@ -197,33 +197,6 @@ iOS에서는 PWA 앱 설치가 필요합니다:
         return "초기 상태";
       default:
         return "확인 중...";
-    }
-  };
-
-  // 푸시 구독 상태를 확인하는 함수
-  const getPushSubscriptionStatus = async (): Promise<string> => {
-    try {
-      // 브라우저 알림 권한이 허용되지 않은 경우
-      if (!("Notification" in window) || Notification.permission !== "granted") {
-        return "권한 없음";
-      }
-
-      // Service Worker가 지원되지 않는 경우
-      if (!("serviceWorker" in navigator)) {
-        return "Service Worker 미지원";
-      }
-
-      const registration = await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.getSubscription();
-
-      if (subscription) {
-        return "구독";
-      } else {
-        return "미구독";
-      }
-    } catch (error) {
-      console.error("푸시 구독 상태 확인 중 오류:", error);
-      return "확인 실패";
     }
   };
 
