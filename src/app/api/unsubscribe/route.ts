@@ -8,10 +8,7 @@ export async function POST(req: NextRequest) {
 
     const { error } = await supabase
       .from("info")
-      .update({
-        created_at: new Date().toISOString(),
-        subscription_data: null,
-      })
+      .delete()
       .eq("subscription_data", subscriptionData);
 
     if (error) {
